@@ -56,7 +56,7 @@ angular.module('Reflectiv', ['ngRoute'])
   };
 
   topicsList.addTopic = function(){
-    var container = {}; 
+    var container = {};
     for(var i =0; i<topicsList.topics.length; i++){
       container[topicsList.topics[i]["text"]] = true;
     }
@@ -75,6 +75,7 @@ angular.module('Reflectiv', ['ngRoute'])
       } 
       
       topicsList.topicText = '';
+    $scope.topicsAdded = true; 
 
     };
 
@@ -92,7 +93,7 @@ angular.module('Reflectiv', ['ngRoute'])
   })
 
 
-.controller('VotesController', function($location, $http, Sprint){ // injects location, http, sprint
+.controller('VotesController', function($window, $location, $http, Sprint){ // injects location, http, sprint
   var votesList = this; // sets scope to votesLIst
 
   votesList.init = function(){
@@ -117,15 +118,15 @@ angular.module('Reflectiv', ['ngRoute'])
         console.log(Sprint.table)
         vote();
         $location.path('/topic/' + Sprint.table + '/results');
-      } 
-
+      };
+      // checks if every topic has been voted on
       if(!votesList.topics.every(checkVotes)){
         for(var i = 0; i < votesList.topics; i++){
           if(votesList.topics[i].vote === 0){
-            return alert("You did not vote for : ", votesList.topics[i].text)
+            $window.alert("You did not vote for : ", votesList.topics[i].text)
           };
         };
-      }
+      };
     };
 
     var vote = function(){
@@ -158,9 +159,8 @@ angular.module('Reflectiv', ['ngRoute'])
   };
 
   resultsList.init();
-
+  
   resultsList.viewResults = function(){
-      console.log
       $location.path('/topic/' + Sprint.table + '/results'); // navigates to results view
     };   
 
@@ -188,7 +188,6 @@ angular.module('Reflectiv', ['ngRoute'])
   });
   
   resultsList.restart = function(){
-
     // Http request to url that will delete all rows in database for a new sprint
     $http.post('/api/reset', {}) 
       .then(function(response) { // success function
@@ -199,8 +198,7 @@ angular.module('Reflectiv', ['ngRoute'])
       });
 
     $location.path('/'); // restart
-
-
+    location.reload();
   };
 });
 
