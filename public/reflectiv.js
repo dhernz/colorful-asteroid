@@ -19,7 +19,7 @@ angular.module('Reflectiv', ['ngRoute'])
   });
 }])
 
-.controller('TopicsController', function($location, $http, Sprint){ // injects location, http, sprint
+.controller('TopicsController', function($scope, $location, $http, Sprint){ // injects location, http, sprint
   var topicsList = this; // sets scope to topicsList
   
   topicsList.init = function(){
@@ -36,23 +36,25 @@ angular.module('Reflectiv', ['ngRoute'])
     topicsList.topics = response.data; // stores topics in topicsList
   }, 
   function(response) { // error function
-    console.log('you have an error');
+    console.log('you have an error ', response);
   });
 
   topicsList.create = function(){
-    Sprint.table = Math.random().toString(36).substring(7); // generates sprint id
-    $location.path('/topic/' + Sprint.table); // sets url to sprint id
+    Sprint.table = Math.random().toString(36).substring(7);
+    $scope.createLink = true;
+    topicsList.sprintUrl = 'http://reflectiv.herokuapp.com/topic/' + Sprint.table + '/vote';
+     // generates sprint id
+    // $location.path('/topic/' + Sprint.table); // sets url to sprint id
   };
 
   topicsList.addTopic = function(){
-      var container = {}; 
-      for(var i =0; i<topicsList.topics.length; i++){
-        container[topicsList.topics[i]["text"]] = true
-      }
-      
-      if(!container[topicsList.topicText]){
-        // console.log(container)
-        $http.post('/api/topics', {text: topicsList.topicText,}) // adds topic to database
+    var container = {};
+    for(var i =0; i<topicsList.topics.length; i++){
+      container[topicsList.topics[i]["text"]] = true
+    }
+
+    if(!container[topicsList.topicText]){
+        $http.post('/api/topics?'+Sprint.table, {text: topicsList.topicText,}) // adds topic to database
         .then(function(response) { // success function
           topicsList.topics = response.data; // updates topics
         }, 
@@ -65,10 +67,11 @@ angular.module('Reflectiv', ['ngRoute'])
       } 
       
       topicsList.topicText = '';
+    $scope.topicsAdded = true; 
 
-  };
+    };
 
-  topicsList.sprintUrl = 'http://reflectiv.guru/topic/' + Sprint.table + '/'; // sets sharable url
+  topicsList.sprintUrl = 'http://reflectiv.herokuapp.com/topic/' + Sprint.table + '/vote'; // sets sharable url
 
   topicsList.startVote = function(){
       $location.path('/topic/' + Sprint.table + '/vote'); // navigates to vote view
@@ -76,14 +79,13 @@ angular.module('Reflectiv', ['ngRoute'])
   
   topicsList.runner = function(){
       if(topicsList.topics.length){
-        topicsList.create();
         topicsList.startVote();
       }
     };
   })
 
 
-.controller('VotesController', function($location, $http, Sprint){ // injects location, http, sprint
+.controller('VotesController', function($window, $location, $http, Sprint){ // injects location, http, sprint
   var votesList = this; // sets scope to votesLIst
 
   votesList.init = function(){
@@ -103,45 +105,42 @@ angular.module('Reflectiv', ['ngRoute'])
     });
 
     votesList.check = function() {
-      console.log('vote objects : ', votesList.topics);
       // if every returns true, invoke vote();
       if(votesList.topics.every(checkVotes)){
+        console.log(Sprint.table)
         vote();
         $location.path('/topic/' + Sprint.table + '/results');
-      } 
-
+      };
+      // checks if every topic has been voted on
       if(!votesList.topics.every(checkVotes)){
         for(var i = 0; i < votesList.topics; i++){
           if(votesList.topics[i].vote === 0){
-            return alert("You did not vote for : ", votesList.topics[i].text)
+            $window.alert("You did not vote for : ", votesList.topics[i].text)
           };
         };
-      }
+      };
     };
 
     var vote = function(){
         $http.post('/api/votes', votesList.topics) // post vote to db
           .then(function(response) { // success function
             console.log('Vote submitted');
-        }, 
+          }, 
         function(response) { // error function
           console.log('you have an error in your voting');
         });
-      };
+        };
 
-    var checkVotes = function(currentValue, index, array){
-      return currentValue.vote > 0;
-    };
+        var checkVotes = function(currentValue, index, array){
+          return currentValue.vote > 0;
+        };
 
-    
-
-
-    votesList.viewResults = function(){
+        votesList.viewResults = function(){
       $location.path('/topic/' + Sprint.table + '/results'); // navigates to results view
     };  
   })
 
-.controller('ResultsController', function($location, $http, Sprint){ // injects location, http
+.controller('ResultsController', function($scope, $location, $http, Sprint){ // injects location, http
   var resultsList = this; // sets scope to resultsList
   resultsList.obj = {}; // initializes object that stores results
   
@@ -152,6 +151,10 @@ angular.module('Reflectiv', ['ngRoute'])
   };
 
   resultsList.init();
+  
+  resultsList.viewResults = function(){
+      $location.path('/topic/' + Sprint.table + '/results'); // navigates to results view
+    };   
 
 
   // Retrieve the list of already submitted votes when the topics page is accessed
@@ -177,7 +180,6 @@ angular.module('Reflectiv', ['ngRoute'])
   });
   
   resultsList.restart = function(){
-
     // Http request to url that will delete all rows in database for a new sprint
     $http.post('/api/reset', {}) 
       .then(function(response) { // success function
@@ -188,8 +190,7 @@ angular.module('Reflectiv', ['ngRoute'])
       });
 
     $location.path('/'); // restart
-
-
+    location.reload();
   };
 });
 
