@@ -45,17 +45,7 @@ angular.module('Reflectiv', ['ngRoute'])
   topicsList.create = function(){
     Sprint.table = Math.random().toString(36).substring(7);
     $scope.createLink = true;
-    topicsList.sprintUrl = 'http://reflectiv.herokuapp.com/topic/' + Sprint.table + '/vote';
-    $http.post('/api/topics/', {link: Sprint.table})
-    .then(function(response){
-      console.log('Success sent');
-    },
-    function(response){
-      console.log('Error sending link to db');
-    });
-
-     // generates sprint id
-    // $location.path('/topic/' + Sprint.table); // sets url to sprint id
+    topicsList.sprintUrl = 'http://reflectiv.herokuapp.com/#/topic/' + Sprint.table + '/vote';
   };
 
   topicsList.addTopic = function(){
