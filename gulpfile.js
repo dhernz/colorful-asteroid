@@ -12,13 +12,8 @@ gulp.task('jshint',function(){
 });
 
 gulp.task('watch',function(){
-<<<<<<< HEAD
-  
-  gulp.watch('app.js',['jshint'])
-=======
 
-  gulp.watch(['app.js','public/*.js'],['jshint'])
->>>>>>> 6e39b9e5320c047622c143ec772c247451982c31
+  gulp.watch(['app.js','public/*.js'],['jshint']);
 
 });
 
